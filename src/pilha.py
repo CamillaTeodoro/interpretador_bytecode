@@ -1,4 +1,3 @@
-# src/pilha.py
 class Pilha:
     """Implementação da pilha para a máquina virtual"""
     
