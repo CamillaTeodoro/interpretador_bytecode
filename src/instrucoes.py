@@ -45,5 +45,7 @@ class ParserInstrucoes:
         labels = {}
         for idx, (op, arg, _) in enumerate(instrucoes):
             if op == 'LABEL':
+                if arg in labels:
+                    raise ValueError(f"Label duplicado: {arg}")
                 labels[arg] = idx
         return labels

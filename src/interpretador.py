@@ -13,6 +13,7 @@ class InterpretadorBytecode:
         self.labels = {}
         self.pc = 0  # Program Counter (apontador de instrução)
         self.pilha_chamadas = []  # Pilha para CALL/RET
+        self.MAX_CALL_DEPTH = 1000
     
     def carregar_programa(self, caminho_arquivo):
         """Carrega programa bytecode de um arquivo"""
@@ -75,6 +76,8 @@ class InterpretadorBytecode:
         elif op == 'MOD':
             b = self.pilha.pop()
             a = self.pilha.pop()
+            if b == 0:
+                raise ZeroDivisionError("Módulo por zero")
             self.pilha.push(a % b)
             self.pc += 1
         
@@ -154,6 +157,8 @@ class InterpretadorBytecode:
         
         # Funções
         elif op == 'CALL':
+            if len(self.pilha_chamadas) >= self.MAX_CALL_DEPTH:
+                raise RuntimeError(f"Limite de recursão excedido ({self.MAX_CALL_DEPTH})")
             self.pilha_chamadas.append(self.pc + 1)  # Salva endereço de retorno
             self.pc = self.resolver_endereco(arg)
         
@@ -164,6 +169,8 @@ class InterpretadorBytecode:
         
         # E/S
         elif op == 'PRINT':
+            if self.pilha.vazia():
+                raise RuntimeError("PRINT: pilha vazia")
             valor = self.pilha.peek()  # Mantém na pilha
             print(int(valor) if isinstance(valor, float) and valor.is_integer() else valor)
             self.pc += 1
@@ -187,9 +194,16 @@ class InterpretadorBytecode:
     def resolver_endereco(self, endereco):
         """Resolve endereço (pode ser label ou número)"""
         if isinstance(endereco, str):
-            if endereco in self.labels:
-                return self.labels[endereco]
-            raise ValueError(f"Label '{endereco}' não encontrado")
+            if endereco not in self.labels:
+                raise ValueError(f"Label '{endereco}' não encontrado")
+            return self.labels[endereco]
+        
+        if not isinstance(endereco, str):
+            raise ValueError(f"Endereço deve ser inteiro ou label, recebido: {type(endereco)}")
+        
+        if endereco < 0 or endereco >= len(self.instrucoes):
+            raise ValueError(f"Endereço {endereco} fora do alcance (0-{len(self.instrucoes)-1})")
+    
         return endereco
 
 
