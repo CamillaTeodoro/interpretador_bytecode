@@ -1,0 +1,26 @@
+PUSH 5
+STORE n
+PUSH 1
+STORE result
+
+LOOP:
+LOAD n
+PUSH 0
+GT
+JZ END
+
+LOAD result
+LOAD n
+MUL
+STORE result
+
+LOAD n
+PUSH 1
+SUB
+STORE n
+
+JMP LOOP
+
+END:
+LOAD result
+PRINT
