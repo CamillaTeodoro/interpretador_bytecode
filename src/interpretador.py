@@ -33,6 +33,9 @@ class InterpretadorBytecode:
             except Exception as e:
                 print(f"Erro na linha {num_linha + 1}: {e}", file=sys.stderr)
                 sys.exit(1)
+        if self.pilha_chamadas:
+            print(f"Erro: Programa terminou com {len(self.pilha_chamadas)} chamada(s) sem retorno", file=sys.stderr)
+            sys.exit(1)
     
     def executar_instrucao(self, op, arg):
         """Executa uma única instrução. Retorna False para HALT."""
@@ -208,18 +211,49 @@ class InterpretadorBytecode:
 
 
 def main():
-    """Função principal - lê da entrada padrão e executa"""
-    if len(sys.argv) > 1:
-        interpretador = InterpretadorBytecode()
-        interpretador.carregar_programa(sys.argv[1])
-        interpretador.executar()
-    else:
-        linhas = sys.stdin.readlines()
-        interpretador = InterpretadorBytecode()
-        interpretador.instrucoes = ParserInstrucoes.parsear_linhas(linhas)
-        interpretador.labels = ParserInstrucoes.encontrar_labels(interpretador.instrucoes)
-        interpretador.executar()
-
+    try:
+        """Função principal - lê da entrada padrão e executa"""
+        if len(sys.argv) > 1:
+            interpretador = InterpretadorBytecode()
+            interpretador.carregar_programa(sys.argv[1])
+            interpretador.executar()
+        else:
+            linhas = sys.stdin.readlines()
+            interpretador = InterpretadorBytecode()
+            interpretador.instrucoes = ParserInstrucoes.parsear_linhas(linhas)
+            interpretador.labels = ParserInstrucoes.encontrar_labels(interpretador.instrucoes)
+            interpretador.executar()
+    except FileNotFoundError as e:
+        print(f"Erro: Arquivo '{sys.argv[1] if len(sys.argv) > 1 else 'não especificado'}' não encontrado", file=sys.stderr)
+        sys.exit(1)
+    
+    except ValueError as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        sys.exit(1)
+    
+    except NameError as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        sys.exit(1)
+    
+    except ZeroDivisionError as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        sys.exit(1)
+    
+    except IndexError as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        sys.exit(1)
+    
+    except RuntimeError as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        sys.exit(1)
+    
+    except KeyboardInterrupt:
+        print("\nPrograma interrompido pelo usuário", file=sys.stderr)
+        sys.exit(0)
+    
+    except Exception as e:
+        print(f"Erro inesperado: {e}", file=sys.stderr)
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
